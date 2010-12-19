@@ -10,5 +10,5 @@ public interface UserDAO {
 	public boolean delete(String username);
 	public boolean updateUser(User user);
 	public User getUser(String username);
-	public Vector<Double> averageScoreList();
+	public Vector<RankPair> getRankList();
 }

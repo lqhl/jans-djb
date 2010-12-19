@@ -3,6 +3,7 @@ package jans.database;
 import jans.common.Config;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -44,12 +45,12 @@ public class UserDatabase implements UserDAO {
 	}
 
 	@Override
-	public Vector<Double> averageScoreList() {
+	public Vector<RankPair> getRankList() {
 		try {
-			ResultSet rs = statement.executeQuery("SELECT averageScore FROM users ORDERED by averageScore");
-			Vector<Double> result = new Vector<Double>();
+			ResultSet rs = statement.executeQuery("SELECT username, averageScore FROM users ORDER BY averageScore");
+			Vector<RankPair> result = new Vector<RankPair>();
 			while (rs.next())
-				result.add(rs.getDouble("averageScore"));
+				result.add(new RankPair(rs.getString("username"), rs.getDouble("averageScore")));
 			return result;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -139,7 +140,7 @@ public class UserDatabase implements UserDAO {
 	@Override
 	public boolean delete(String username) {
 		try {
-			statement.executeUpdate("DELETE FROM users WHERE username = " + username);
+			statement.executeUpdate("DELETE FROM users WHERE username = '" + username + "'");
 			statement.executeUpdate("DROP TABLE " + username + "Scores");
 			return true;
 		} catch (SQLException e) {
@@ -162,15 +163,17 @@ public class UserDatabase implements UserDAO {
 	@Override
 	public User getUser(String username) {
 		try {
-			ResultSet userResult = statement.executeQuery("SELECT * FROM users WHERE username='" + username + "'");
+			ResultSet userResult = statement.executeQuery("SELECT * FROM users WHERE username = '" + username + "'");
+			if (!userResult.next())
+				return null;
+			String password = userResult.getString("password");
+			Date date = userResult.getDate("joinDate");
 			ResultSet userScores = statement.executeQuery("SELECT score FROM " + username + "Scores");
 			Vector<Double> scores = new Vector<Double>();
 			while (userScores.next()) {
 				scores.add(userScores.getDouble("score"));
 			}
-			if (!userResult.next())
-				return null;
-			return new User(username, userResult.getString("password"), scores, userResult.getDate("joinDate"));
+			return new User(username, password, scores, date);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return null;
@@ -180,14 +183,14 @@ public class UserDatabase implements UserDAO {
 	@Override
 	public boolean updateUser(User user) {
 		try {
-			ResultSet userResult = statement.executeQuery("SELECT * FROM users WHERE username = " + user.getUsername());
+			ResultSet userResult = statement.executeQuery("SELECT * FROM users WHERE username = '" + user.getUsername() + "'");
 			if (!userResult.next())
 				return false;
 			statement.executeUpdate("UPDATE users SET password = '" +
 				user.getPassword() + "', averageScore = " +
 				user.getAverageScore() + ", joinDate = '" +
 				user.getJoinDate() + "' WHERE username = '" + user.getUsername() + "'");
-			statement.executeUpdate("DELETE * FROM " + user.getUsername() + "Scores");
+			statement.executeUpdate("DELETE FROM " + user.getUsername() + "Scores");
 			Vector<Double> scores = user.getScores();
 			for (Double score : scores)
 				statement.executeUpdate("INSERT INTO " + user.getUsername() + "Scores VALUES (" + score + ")");

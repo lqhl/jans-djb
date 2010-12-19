@@ -11,10 +11,15 @@ public class SelfTest {
 		UserDatabase database = new UserDatabase();
 //		database.createUserDatabase();
 		database.connect();
-//		User user = new User("wxa", "wxawxa", new Vector<Double>());
-//		database.add(user);
-		User user2 = database.getUser("wxa");
-		System.out.println(user2.getPassword());
+//		Vector<Double> scores = new Vector<Double>();
+//		scores.add(4.0);
+//		User user = new User("wxa", "wxasb", scores);
+//		database.updateUser(user);
+		Vector<RankPair> show = database.getRankList();
+		for (RankPair entry : show)
+			System.out.println(entry.username + ": " + entry.averageScore);
+//		database.delete("wujie");
+		database.disconnect();
 	}
 
 	static void test() {
