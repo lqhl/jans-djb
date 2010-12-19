@@ -27,7 +27,7 @@ public final class Config {
 	}
 
 	/**
-	 * Get the value of a key in <tt>tenet.conf</tt>.
+	 * Get the value of a key in <tt>configuration</tt>
 	 * 
 	 * @param key
 	 *            the key to look up.
@@ -39,7 +39,7 @@ public final class Config {
 	}
 
 	/**
-	 * Get the value of a key in <tt>tenet.conf</tt>, returning the specified
+	 * Get the value of a key in <tt>configuration</tt>, returning the specified
 	 * default if the key does not exist.
 	 * 
 	 * @param key
@@ -55,7 +55,7 @@ public final class Config {
 	}
 
 	/**
-	 * Get the value of an integer key in <tt>tenet.conf</tt>.
+	 * Get the value of an integer key in <tt>configuration</tt>.
 	 * 
 	 * @param key
 	 *            the key to look up.
@@ -71,7 +71,7 @@ public final class Config {
 	}
 
 	/**
-	 * Get the value of an integer key in <tt>tenet.conf</tt>, returning the
+	 * Get the value of an integer key in <tt>configuration</tt>, returning the
 	 * specified default if the key does not exist.
 	 * 
 	 * @param key
@@ -90,7 +90,7 @@ public final class Config {
 	}
 
 	/**
-	 * Get the value of a double key in <tt>tenet.conf</tt>.
+	 * Get the value of a double key in <tt>configuration</tt>.
 	 * 
 	 * @param key
 	 *            the key to look up.
@@ -106,7 +106,7 @@ public final class Config {
 	}
 
 	/**
-	 * Get the value of a double key in <tt>tenet.conf</tt>, returning the
+	 * Get the value of a double key in <tt>configuration</tt>, returning the
 	 * specified default if the key does not exist.
 	 * 
 	 * @param key
@@ -125,7 +125,7 @@ public final class Config {
 	}
 
 	/**
-	 * Get the value of a boolean key in <tt>tenet.conf</tt>.
+	 * Get the value of a boolean key in <tt>configuration</tt>.
 	 * 
 	 * @param key
 	 *            the key to look up.
@@ -147,7 +147,7 @@ public final class Config {
 	}
 
 	/**
-	 * Get the value of a boolean key in <tt>tenet.conf</tt>, returning the
+	 * Get the value of a boolean key in <tt>configuration</tt>, returning the
 	 * specified default if the key does not exist.
 	 * 
 	 * @param key

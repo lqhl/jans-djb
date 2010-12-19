@@ -10,19 +10,26 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Vector;
 
+/**
+ * This class is used to access user data in JANS
+ * from a MySQL database
+ * @author lqhl
+ *
+ */
 public class UserDatabase implements UserDAO {
-	private static String defaultAdmin = "DJB";
-	private static String defaultAdminPassword = "JBD";
-	
 	private String admin;
 	private String adminPassword;
+	private String superAdmin;
+	private String superAdminPassword;
 	
 	private Connection connection;
 	private Statement statement;
 	
 	public UserDatabase() {
-		admin = Config.getString("adminOfUserDatabase", defaultAdmin);
-		adminPassword = Config.getString("passwordOfUserDatabase", defaultAdminPassword);
+		superAdmin = Config.getString("rootOfDatabase", "root");
+		superAdminPassword = Config.getString("passwordOfRoot", "");
+		admin = Config.getString("adminOfUserDatabase", "DJB");
+		adminPassword = Config.getString("passwordOfUserDatabase", "JBD");
 	}
 	
 	@Override
@@ -59,21 +66,19 @@ public class UserDatabase implements UserDAO {
 	}
 
 	@Override
-	public boolean connect() {
+	public void connect() {
 		try {
 			String url = "jdbc:mysql://localhost:3306/JansUserDatabase";
 			connection = DriverManager.getConnection(url, admin, adminPassword);
 			statement = connection.createStatement();
-			return true;
 			
 		} catch (Exception e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 
 	@Override
-	public boolean createUserDatabase() {
+	public void createUserDatabase() {
 		try {
 			Statement stmt;
 
@@ -91,7 +96,7 @@ public class UserDatabase implements UserDAO {
 			// user named root with a blank password.
 			// This user is the default administrator
 			// having full privileges to do anything.
-			Connection con = DriverManager.getConnection(url, "root", "");
+			Connection con = DriverManager.getConnection(url, superAdmin, superAdminPassword);
 
 			// Get a Statement object
 			stmt = con.createStatement();
@@ -130,10 +135,8 @@ public class UserDatabase implements UserDAO {
 			// user named DJB with the password
 			// JBD.
 			con = DriverManager.getConnection(url, "DJB", "JBD");
-			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 
@@ -150,13 +153,11 @@ public class UserDatabase implements UserDAO {
 	}
 
 	@Override
-	public boolean disconnect() {
+	public void disconnect() {
 		try {
 			connection.close();
-			return true;
 		} catch (SQLException e) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 

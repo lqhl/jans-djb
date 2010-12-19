@@ -19,6 +19,9 @@ public class User {
 		this.joinDate = joinDate;
 	}
 	
+	/**
+	 * default joinDate is the date of today
+	 */
 	public User(String username, String password, Vector<Double> scores) {
 		this.username = username;
 		this.password = password;
