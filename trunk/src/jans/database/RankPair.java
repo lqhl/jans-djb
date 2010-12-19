@@ -1,5 +1,10 @@
 package jans.database;
 
+/**
+ * This class is used to represent user ranking ordered by averageScore
+ * @author lqhl
+ *
+ */
 public class RankPair {
 	String username;
 	Double averageScore;
