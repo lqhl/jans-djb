@@ -80,4 +80,15 @@ public class User {
 		else
 			averageScore = 0;
 	}
+
+	public void print() {
+		System.out.println("username: " + getUsername());
+		System.out.println("pass: " + getPassword());
+		System.out.println("average: " + getAverageScore());
+		System.out.println("date: " + getJoinDate());
+		System.out.println("scores:");
+		for (Double d : getScores())
+			System.out.print(d + " ");
+		System.out.println();
+	}
 }

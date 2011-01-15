@@ -5,11 +5,15 @@ package jans.database;
  * @author lqhl
  *
  */
-public class RankPair {
+public class RankPair implements Comparable<RankPair> {
 	String username;
 	Double averageScore;
 	RankPair(String username, Double averageScore) {
 		this.username = username;
 		this.averageScore = averageScore;
+	}
+	@Override
+	public int compareTo(RankPair arg0) {
+		return (int) Math.signum(averageScore - arg0.averageScore);
 	}
 }

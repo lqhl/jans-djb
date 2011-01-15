@@ -1,6 +1,7 @@
 package jans.database;
 
 import jans.common.Config;
+import jans.common.Lib;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -12,11 +13,11 @@ import java.util.Vector;
 
 /**
  * This class is used to access user data in JANS
- * from a MySQL database
+ * through a MySQL database
  * @author lqhl
  *
  */
-public class UserDatabase implements UserDAO {
+public class UserDAOMySql implements UserDAO {
 	private String admin;
 	private String adminPassword;
 	private String superAdmin;
@@ -25,7 +26,9 @@ public class UserDatabase implements UserDAO {
 	private Connection connection;
 	private Statement statement;
 	
-	public UserDatabase() {
+	protected static char dbgDatabase = 'd';
+	
+	public UserDAOMySql() {
 		superAdmin = Config.getString("rootOfDatabase", "root");
 		superAdminPassword = Config.getString("passwordOfRoot", "");
 		admin = Config.getString("adminOfUserDatabase", "DJB");
@@ -33,20 +36,20 @@ public class UserDatabase implements UserDAO {
 	}
 	
 	@Override
-	public boolean add(User user) {
+	public boolean addUser(User user) {
 		try {
 			statement.executeUpdate("INSERT INTO users VALUES ('" +
 				user.getUsername() + "', '" +
 				user.getPassword() + "', " +
 				user.getAverageScore() + ", '" +
 				user.getJoinDate() + "')");
-			statement.executeUpdate("CREATE TABLE " + user.getUsername() + "Scores(score double)");
 			Vector<Double> scores = user.getScores();
 			for (Double score : scores)
-				statement.executeUpdate("INSERT INTO " + user.getUsername() + "Scores VALUES (" + score + ")");
+				statement.executeUpdate("INSERT INTO scores VALUES ('" + user.getUsername() + "', " + score + ")");
 			return true;
 		} catch (SQLException e) {
-			e.printStackTrace();
+			if (Lib.test(dbgDatabase))
+				e.printStackTrace();
 			return false;
 		}
 	}
@@ -60,7 +63,8 @@ public class UserDatabase implements UserDAO {
 				result.add(new RankPair(rs.getString("username"), rs.getDouble("averageScore")));
 			return result;
 		} catch (SQLException e) {
-			e.printStackTrace();
+			if (Lib.test(dbgDatabase))
+				e.printStackTrace();
 			return null;
 		}
 	}
@@ -71,9 +75,9 @@ public class UserDatabase implements UserDAO {
 			String url = "jdbc:mysql://localhost:3306/JansUserDatabase";
 			connection = DriverManager.getConnection(url, admin, adminPassword);
 			statement = connection.createStatement();
-			
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (Lib.test(dbgDatabase))
+				e.printStackTrace();
 		}
 	}
 
@@ -131,23 +135,65 @@ public class UserDatabase implements UserDAO {
 			
 			stmt.executeUpdate("CREATE TABLE users(username VARCHAR(512), password VARCHAR(256), averageScore DOUBLE, joinDate DATE, UNIQUE (username))");
 			
-			// Get a connection to the database for a
-			// user named DJB with the password
-			// JBD.
-			con = DriverManager.getConnection(url, "DJB", "JBD");
+			stmt.executeUpdate("CREATE TABLE scores(username VARCHAR(512), score DOUBLE)");
+			
+			con.close();
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (Lib.test(dbgDatabase))
+				e.printStackTrace();
+		}
+	}
+	
+	@Override
+	public void deleteUserDatabase() {
+		try {
+			Statement stmt;
+
+			// Register the JDBC driver for MySQL.
+			Class.forName("com.mysql.jdbc.Driver");
+
+			// Define URL of database server for
+			// database named mysql on the localhost
+			// with the default port number 3306.
+			String url = "jdbc:mysql://localhost:3306/mysql";
+
+			// Get a connection to the database for a
+			// user named root with a blank password.
+			// This user is the default administrator
+			// having full privileges to do anything.
+			Connection con = DriverManager.getConnection(url, "root", "");
+
+			// Get a Statement object
+			stmt = con.createStatement();
+
+			// Remove the user named auser
+			stmt.executeUpdate("REVOKE ALL PRIVILEGES ON *.* "
+					+ "FROM '" + admin + "'@'localhost'");
+			stmt.executeUpdate("REVOKE GRANT OPTION ON *.* "
+					+ "FROM '" + admin + "'@'localhost'");
+			stmt.executeUpdate("DELETE FROM mysql.user WHERE "
+					+ "User='" + admin + "' and Host='localhost'");
+			stmt.executeUpdate("FLUSH PRIVILEGES");
+
+			// Delete the database
+			stmt.executeUpdate("DROP DATABASE JansUserDatabase");
+
+			con.close();
+		} catch (Exception e) {
+			if (Lib.test(dbgDatabase))
+				e.printStackTrace();
 		}
 	}
 
 	@Override
-	public boolean delete(String username) {
+	public boolean removeUser(String username) {
 		try {
 			statement.executeUpdate("DELETE FROM users WHERE username = '" + username + "'");
-			statement.executeUpdate("DROP TABLE " + username + "Scores");
+			statement.executeUpdate("DELETE FROM scores WHERE username = '" + username + "'");
 			return true;
 		} catch (SQLException e) {
-			e.printStackTrace();
+			if (Lib.test(dbgDatabase))
+				e.printStackTrace();
 			return false;
 		}
 	}
@@ -157,7 +203,8 @@ public class UserDatabase implements UserDAO {
 		try {
 			connection.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			if (Lib.test(dbgDatabase))
+				e.printStackTrace();
 		}
 	}
 
@@ -169,14 +216,15 @@ public class UserDatabase implements UserDAO {
 				return null;
 			String password = userResult.getString("password");
 			Date date = userResult.getDate("joinDate");
-			ResultSet userScores = statement.executeQuery("SELECT score FROM " + username + "Scores");
+			ResultSet userScores = statement.executeQuery("SELECT score FROM scores WHERE username = '" + username + "'");
 			Vector<Double> scores = new Vector<Double>();
 			while (userScores.next()) {
 				scores.add(userScores.getDouble("score"));
 			}
 			return new User(username, password, scores, date);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			if (Lib.test(dbgDatabase))
+				e.printStackTrace();
 			return null;
 		}
 	}
@@ -191,13 +239,14 @@ public class UserDatabase implements UserDAO {
 				user.getPassword() + "', averageScore = " +
 				user.getAverageScore() + ", joinDate = '" +
 				user.getJoinDate() + "' WHERE username = '" + user.getUsername() + "'");
-			statement.executeUpdate("DELETE FROM " + user.getUsername() + "Scores");
+			statement.executeUpdate("DELETE FROM scores WHERE username = '" + user.getUsername() + "'");
 			Vector<Double> scores = user.getScores();
 			for (Double score : scores)
-				statement.executeUpdate("INSERT INTO " + user.getUsername() + "Scores VALUES (" + score + ")");
+				statement.executeUpdate("INSERT INTO scores VALUES ('" + user.getUsername() + "', " + score + ")");
 			return true;
 		} catch (SQLException e) {
-			e.printStackTrace();
+			if (Lib.test(dbgDatabase))
+				e.printStackTrace();
 			return false;
 		}
 	}
